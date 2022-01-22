@@ -54,6 +54,8 @@ class Logger:
         name = _Formatter.bold('[' + self.name + ']')
         name = _Formatter.blue(name)
         level = _Formatter.blue('[DEBUG]')
+        if type(message) is not str:
+            message = str(message)
         message = _Formatter.blue(message)
 
         if not self.muteAll and not self.muteDebug:
