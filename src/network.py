@@ -7,15 +7,6 @@ class ActivationFunctions(Enum):
     relu = auto()
     softmax = auto()
 
-# class ActivationFunctions:
-#     def relu(self, inputs):
-#         self.output = np.maximum(0, inputs)
-
-#     def softmax(self, inputs):
-#         exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
-#         probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
-#         self.output = probabilities
-
 
 class Layer:
     def __init__(self, inputSize: int, neurons: int):
