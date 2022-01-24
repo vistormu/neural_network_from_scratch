@@ -2,7 +2,7 @@ import numpy as np
 
 from core.logger import Logger
 from src import data, network
-from src.loss_functions import Loss_CategoricalCrossEntropy
+from src.loss_functions import CategoricalCrossEntropyLoss
 
 
 def main():
@@ -21,8 +21,7 @@ def main():
     layer2.forward(
         layer1.output, activationFunction=network.ActivationFunctions.softmax)
 
-    loss_function = Loss_CategoricalCrossEntropy()
-    loss = loss_function.calculate(layer2.output, y)
+    loss = CategoricalCrossEntropyLoss().calculate(layer2.output, y)
 
     logger.debug('output: ', layer2.output[:5])
     logger.debug('loss: ', loss)
