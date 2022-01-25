@@ -2,7 +2,8 @@ import numpy as np
 
 
 class CategoricalCrossEntropyLoss:
-    def calculate(self, predictions, targets):
+    @staticmethod
+    def calculate(predictions, targets):
         predictions = np.clip(predictions, 1e-7, 1-1e-7)
 
         if len(targets.shape) == 1:
