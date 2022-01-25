@@ -1,6 +1,6 @@
 from core.logger import Logger
 from src import network as net
-from src.data import Data
+from src import data
 from src.loss_functions import CategoricalCrossEntropyLoss
 
 
@@ -8,7 +8,7 @@ def main():
 
     logger = Logger(name='main')
 
-    x, y = Data.vertical(samples=100, classes=3)
+    x, y = data.vertical(samples=100, classes=3)
 
     inputSize = x.shape[1]
     input = x

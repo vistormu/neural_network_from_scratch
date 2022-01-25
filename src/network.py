@@ -1,10 +1,10 @@
 import numpy as np
-from enum import Enum, auto
+import enum
 
 
-class ActivationFunctions(Enum):
-    relu = auto()
-    softmax = auto()
+class ActivationFunctions(enum.Enum):
+    relu = enum.auto()
+    softmax = enum.auto()
 
 
 class ActivationFunctionsImplementation:
