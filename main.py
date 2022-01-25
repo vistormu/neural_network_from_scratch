@@ -1,5 +1,3 @@
-import numpy as np
-
 from core.logger import Logger
 from src import network as net
 from src.data import Data
