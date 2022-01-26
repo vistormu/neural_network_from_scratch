@@ -14,11 +14,11 @@ class _ActivationRelu:
         return np.maximum(0, inputs)
 
     @staticmethod
-    def backward(inputs):
-        output = inputs.copy()
-        output[inputs <= 0] = 0
+    def backward(error, inputs):
+        activationError = error.copy()
+        activationError[inputs <= 0] = 0
 
-        return output
+        return activationError
 
 
 class _ActivationSoftmax:
@@ -63,7 +63,8 @@ class Layer:
         self.output = self._pickForwardFunction(activationFunction, output)
 
     def backward(self, error, activationFunction=ActivationFunctions.relu):
-        activationError = self._pickBackwardFunction(activationFunction, error)
+        activationError = self._pickBackwardFunction(
+            activationFunction, error, self.output)
 
         self.dweights = np.dot(self.inputs.T, activationError)
         self.dbiases = np.sum(activationError, axis=0, keepdims=True)
@@ -78,9 +79,9 @@ class Layer:
             return _ActivationSoftmax.forward(inputs)
 
     @staticmethod
-    def _pickBackwardFunction(activationFunction, error):
+    def _pickBackwardFunction(activationFunction, error, inputs):
         if activationFunction is ActivationFunctions.relu:
-            return _ActivationRelu.backward(error)
+            return _ActivationRelu.backward(error, inputs)
 
         if activationFunction is ActivationFunctions.softmax:
             return error

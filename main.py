@@ -34,6 +34,9 @@ def main():
     layer2 = net.Layer(inputSize=layer1.neurons, neurons=3)
     lossFunction = net.CategoricalCrossEntropyLoss()
 
+    layer1.weights = np.zeros([inputSize, 3]) + 0.1
+    layer2.weights = np.zeros([layer1.neurons, 3]) + 0.1
+
     layer1.forward(samples)
     layer2.forward(
         layer1.output, activationFunction=net.ActivationFunctions.softmax)
