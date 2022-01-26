@@ -28,23 +28,9 @@ class _ActivationSoftmax:
         probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
         return probabilities
 
-    @staticmethod
-    def backward(predictions, targets):
-
-        if len(targets.shape) == 2:
-            targets = np.argmax(targets, axis=1)
-
-        output = predictions.copy()
-
-        output[range(len(predictions)), targets] -= 1
-        output = output / len(predictions)
-
-        return output
-
 
 class CategoricalCrossEntropyLoss:
-    @staticmethod
-    def calculate(predictions, targets):
+    def calculate(self, predictions, targets):
         predictions = np.clip(predictions, 1e-7, 1-1e-7)
 
         if len(targets.shape) == 1:
@@ -53,9 +39,16 @@ class CategoricalCrossEntropyLoss:
             correctConfidences = np.sum(predictions*targets, axis=1)
 
         likelihoods = -np.log(correctConfidences)
-        loss = np.mean(likelihoods)
+        self.loss = np.mean(likelihoods)
 
-        return loss
+    def backward(self, predictions, targets):
+        if len(targets.shape) == 2:
+            targets = np.argmax(targets, axis=1)
+
+        output = predictions.copy()
+
+        output[range(len(predictions)), targets] -= 1
+        self.error = output / len(predictions)
 
 
 class Layer:
@@ -69,12 +62,12 @@ class Layer:
         output = np.dot(inputs, self.weights) + self.biases
         self.output = self._pickForwardFunction(activationFunction, output)
 
-    def backward(self, error, targets=None, activationFunction=ActivationFunctions.relu):
-        activationBackward = self._pickBackwardFunction(
-            activationFunction, error, targets)
-        self.dbiases = np.sum(activationBackward, axis=0, keepdims=True)
-        self.dweights = np.dot(self.inputs.T, error)
-        self.error = np.dot(error, self.weights.T)
+    def backward(self, error, activationFunction=ActivationFunctions.relu):
+        activationError = self._pickBackwardFunction(activationFunction, error)
+
+        self.dweights = np.dot(self.inputs.T, activationError)
+        self.dbiases = np.sum(activationError, axis=0, keepdims=True)
+        self.error = np.dot(activationError, self.weights.T)
 
     @staticmethod
     def _pickForwardFunction(activationFunction, inputs):
@@ -85,9 +78,9 @@ class Layer:
             return _ActivationSoftmax.forward(inputs)
 
     @staticmethod
-    def _pickBackwardFunction(activationFunction, error, targets):
+    def _pickBackwardFunction(activationFunction, error):
         if activationFunction is ActivationFunctions.relu:
             return _ActivationRelu.backward(error)
 
-        elif activationFunction is ActivationFunctions.softmax:
-            return _ActivationSoftmax.backward(error, targets)
+        if activationFunction is ActivationFunctions.softmax:
+            return error
