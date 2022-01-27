@@ -1,4 +1,5 @@
 from os import stat
+from turtle import forward
 import numpy as np
 import enum
 
@@ -53,19 +54,21 @@ class CategoricalCrossEntropyLoss:
 
 
 class Layer:
-    def __init__(self, inputSize: int, neurons: int):
-        self.neurons = neurons
-        self.weights = 0.1 * np.random.randn(inputSize, neurons)
-        self.biases = np.zeros((1, neurons))
+    def __init__(self, nInputs, nNeurons, activationFunction=ActivationFunctions.relu):
+        self.nNeurons = nNeurons
+        self.weights = 0.1 * np.random.randn(nInputs, nNeurons)
+        self.biases = np.zeros((1, nNeurons))
+        self.activationFunction = activationFunction
 
-    def forward(self, inputs, activationFunction=ActivationFunctions.relu):
+    def forward(self, inputs):
         self.inputs = inputs
         output = np.dot(inputs, self.weights) + self.biases
-        self.output = self._pickForwardFunction(activationFunction, output)
+        self.output = self._pickForwardFunction(
+            self.activationFunction, output)
 
-    def backward(self, error, activationFunction=ActivationFunctions.relu):
+    def backward(self, error):
         activationError = self._pickBackwardFunction(
-            activationFunction, error, self.output)
+            self.activationFunction, error, self.output)
 
         self.dWeights = np.dot(self.inputs.T, activationError)
         self.dBiases = np.sum(activationError, axis=0, keepdims=True)
@@ -86,3 +89,52 @@ class Layer:
 
         if activationFunction is ActivationFunctions.softmax:
             return error
+
+
+class Model:
+    def __init__(self, nInputs, nOutputs, nLayers, nNeuronsPerLayer, lossFunction):
+        self.nInputs = nInputs
+        self.nOutputs = nOutputs
+        self.nLayers = nLayers
+        self.nNeuronsPerLayer = nNeuronsPerLayer
+        self.lossFunction = lossFunction
+
+        self._initLayers()
+
+    def _initLayers(self):
+        self.layers = []
+        firstLayer = Layer(self.nInputs, self.nNeuronsPerLayer)
+        self.layers.append(firstLayer)
+        for i in range(self.nLayers):
+            layer = Layer(self.nNeuronsPerLayer, self.nNeuronsPerLayer)
+            self.layers.append(layer)
+        lastLayer = Layer(self.nNeuronsPerLayer, self.nOutputs,
+                          activationFunction=ActivationFunctions.softmax)
+        self.layers.append(lastLayer)
+
+    def forward(self, samples):
+        self.layers[0].forward(samples)
+        for i in range(1, len(self.layers)):
+            self.layers[i].forward(self.layers[i-1].output)
+
+    def calculateLoss(self, targets):
+        predictions = self.layers[-1].output
+        self.lossFunction.calculate(predictions, targets)
+        self.loss = self.lossFunction.loss
+        self.accuracy = self.lossFunction.accuracy
+
+    def backward(self, targets):
+        predictions = self.layers[-1].output
+        self.lossFunction.backward(predictions, targets)
+        error = self.lossFunction.error
+        for i in range(len(self.layers)-1, -1, -1):
+            self.layers[i].backward(error)
+            error = self.layers[i].error
+
+    def dump(self):
+        print('x'*self.nInputs)
+        print('')
+        for i in range(self.nLayers):
+            print('x'*self.nNeuronsPerLayer)
+            print('')
+        print('x'*self.nOutputs)

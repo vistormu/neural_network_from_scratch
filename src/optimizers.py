@@ -2,16 +2,12 @@ import numpy as np
 
 
 class VanillaSGD:
-    def __init__(self, initialLearningRate=1.):
-        self.initialLearningRate = initialLearningRate
-        self.learningRate = initialLearningRate
+    def __init__(self, learningRate=1.):
+        self.learningRate = learningRate
 
     def optimize(self, layer):
-        weightUpdates = -self.learningRate*layer.dWeights
-        biasUpdates = -self.learningRate*layer.dBiases
-
-        layer.weights += weightUpdates
-        layer.biases += biasUpdates
+        layer.weights += -self.learningRate*layer.dWeights
+        layer.biases += -self.learningRate*layer.dBiases
 
 
 class SGD:
