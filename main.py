@@ -1,7 +1,7 @@
 import numpy as np
 from core.logger import Logger
 from src import network as net
-from src import data
+from src import data, optimizers
 
 
 def main():
@@ -17,18 +17,29 @@ def main():
     layer1 = net.Layer(inputSize=inputSize, neurons=3)
     layer2 = net.Layer(inputSize=layer1.neurons, neurons=3)
     lossFunction = net.CategoricalCrossEntropyLoss()
+    optimizer = optimizers.VanillaSGD()
 
-    # Front-propagation
-    layer1.forward(samples)
-    layer2.forward(
-        layer1.output, activationFunction=net.ActivationFunctions.softmax)
+    for epoch in range(10001):
 
-    lossFunction.calculate(layer2.output, targets)
+        # Front-propagation
+        layer1.forward(samples)
+        layer2.forward(
+            layer1.output, activationFunction=net.ActivationFunctions.softmax)
 
-    # Back-propagation
-    lossFunction.backward(layer2.output, targets)
-    layer2.backward(lossFunction.error, net.ActivationFunctions.softmax)
-    layer1.backward(layer2.error)
+        lossFunction.calculate(layer2.output, targets)
+
+        # Back-propagation
+        lossFunction.backward(layer2.output, targets)
+        layer2.backward(lossFunction.error, net.ActivationFunctions.softmax)
+        layer1.backward(layer2.error)
+
+        if not epoch % 100:
+            logger.info('\nepoch: ', epoch, ', ',
+                        'accuracy:', lossFunction.accuracy, ', ',
+                        'loss: ', lossFunction.loss, ', ')
+
+        optimizer.optimize(layer1)
+        optimizer.optimize(layer2)
 
 
 if __name__ == '__main__':

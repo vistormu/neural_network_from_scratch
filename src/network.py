@@ -33,13 +33,14 @@ class CategoricalCrossEntropyLoss:
     def calculate(self, predictions, targets):
         predictions = np.clip(predictions, 1e-7, 1-1e-7)
 
-        if len(targets.shape) == 1:
-            correctConfidences = predictions[range(len(predictions)), targets]
-        elif len(targets.shape) == 2:
-            correctConfidences = np.sum(predictions*targets, axis=1)
+        if len(targets.shape) == 2:
+            targets = np.argmax(targets, axis=1)
+
+        correctConfidences = predictions[range(len(predictions)), targets]
 
         likelihoods = -np.log(correctConfidences)
         self.loss = np.mean(likelihoods)
+        self.accuracy = np.mean(np.argmax(predictions, axis=1) == targets)
 
     def backward(self, predictions, targets):
         if len(targets.shape) == 2:
@@ -66,11 +67,11 @@ class Layer:
         activationError = self._pickBackwardFunction(
             activationFunction, error, self.output)
 
-        self.dweights = np.dot(self.inputs.T, activationError)
-        self.dbiases = np.sum(activationError, axis=0, keepdims=True)
+        self.dWeights = np.dot(self.inputs.T, activationError)
+        self.dBiases = np.sum(activationError, axis=0, keepdims=True)
         self.error = np.dot(activationError, self.weights.T)
 
-    @staticmethod
+    @ staticmethod
     def _pickForwardFunction(activationFunction, inputs):
         if activationFunction is ActivationFunctions.relu:
             return _ActivationRelu.forward(inputs)
@@ -78,7 +79,7 @@ class Layer:
         elif activationFunction is ActivationFunctions.softmax:
             return _ActivationSoftmax.forward(inputs)
 
-    @staticmethod
+    @ staticmethod
     def _pickBackwardFunction(activationFunction, error, inputs):
         if activationFunction is ActivationFunctions.relu:
             return _ActivationRelu.backward(error, inputs)
