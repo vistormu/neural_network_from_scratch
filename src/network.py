@@ -105,7 +105,7 @@ class Model:
         self.layers = []
         firstLayer = Layer(self.nInputs, self.nNeuronsPerLayer)
         self.layers.append(firstLayer)
-        for i in range(self.nLayers):
+        for i in range(self.nLayers-1):
             layer = Layer(self.nNeuronsPerLayer, self.nNeuronsPerLayer)
             self.layers.append(layer)
         lastLayer = Layer(self.nNeuronsPerLayer, self.nOutputs,
