@@ -92,12 +92,13 @@ class Layer:
 
 
 class Model:
-    def __init__(self, nInputs, nOutputs, nLayers, nNeuronsPerLayer, lossFunction):
+    def __init__(self, nInputs, nOutputs, nLayers, nNeuronsPerLayer, lossFunction, optimizer):
         self.nInputs = nInputs
         self.nOutputs = nOutputs
         self.nLayers = nLayers
         self.nNeuronsPerLayer = nNeuronsPerLayer
         self.lossFunction = lossFunction
+        self.optimizer = optimizer
 
         self._initLayers()
 
@@ -105,7 +106,7 @@ class Model:
         self.layers = []
         firstLayer = Layer(self.nInputs, self.nNeuronsPerLayer)
         self.layers.append(firstLayer)
-        for i in range(self.nLayers-1):
+        for _ in range(1, self.nLayers):
             layer = Layer(self.nNeuronsPerLayer, self.nNeuronsPerLayer)
             self.layers.append(layer)
         lastLayer = Layer(self.nNeuronsPerLayer, self.nOutputs,
@@ -113,9 +114,10 @@ class Model:
         self.layers.append(lastLayer)
 
     def forward(self, samples):
-        self.layers[0].forward(samples)
-        for i in range(1, len(self.layers)):
-            self.layers[i].forward(self.layers[i-1].output)
+        input = samples
+        for i in range(len(self.layers)):
+            self.layers[i].forward(input)
+            input = self.layers[i].output
 
     def calculateLoss(self, targets):
         predictions = self.layers[-1].output
@@ -130,6 +132,10 @@ class Model:
         for i in range(len(self.layers)-1, -1, -1):
             self.layers[i].backward(error)
             error = self.layers[i].error
+
+    def optimize(self):
+        for layer in self.layers:
+            self.optimizer.optimize(layer)
 
     def dump(self):
         print('x'*self.nInputs)

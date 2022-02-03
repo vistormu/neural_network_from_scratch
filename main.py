@@ -14,51 +14,27 @@ def main():
     nInputs = samples.shape[1]
     nClasses = 3
 
-    # Layers and loss function
-    layer1 = net.Layer(nInputs=nInputs, nNeurons=3)
-    layer2 = net.Layer(nInputs=layer1.nNeurons, nNeurons=3,
-                       activationFunction=net.ActivationFunctions.softmax)
-    lossFunction = net.CategoricalCrossEntropyLoss()
-
+    # Model
     model = net.Model(nInputs=nInputs,
                       nOutputs=nClasses,
                       nLayers=2,
                       nNeuronsPerLayer=3,
-                      lossFunction=net.CategoricalCrossEntropyLoss())
+                      lossFunction=net.CategoricalCrossEntropyLoss(),
+                      optimizer=optimizers.VanillaSGD())
 
-    model.dump()
-
-    optimizer = optimizers.VanillaSGD()
-
-    iterations = 0
+    iterations = 1001
 
     for epoch in range(iterations):
 
         model.forward(samples)
         model.calculateLoss(targets)
         model.backward(targets)
+        model.optimize()
 
-        for layer in model.layers:
-            optimizer.optimize(layer)
-
-        # Front-propagation
-        # layer1.forward(samples)
-        # layer2.forward(layer1.output)
-
-        # lossFunction.calculate(layer2.output, targets)
-
-        # # Back-propagation
-        # lossFunction.backward(layer2.output, targets)
-        # layer2.backward(lossFunction.error)
-        # layer1.backward(layer2.error)
-
-        if not epoch % 100:
+        if not epoch % 200:
             logger.info('\nepoch: ', epoch, ', ',
                         'accuracy:', model.accuracy, ', ',
                         'loss: ', model.loss, ', ')
-
-    #     optimizer.optimize(layer1)
-    #     optimizer.optimize(layer2)
 
 
 if __name__ == '__main__':
